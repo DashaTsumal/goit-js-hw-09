@@ -1,45 +1,42 @@
 const formData = { email: '', message: '' };
-const lc_key = 'feedback-form-state';
+const LC_KEY = 'feedback-form-state';
 
 const formEl = document.querySelector('.feedback-form');
-const feedbackEmail = document.querySelector('.feedback-form input');
-const feedbackMessage = document.querySelector('.feedback-form textarea');
-formEl.addEventListener('input', fillingOutLS);
+const feedbackEmail = document.querySelector('.feedback-form input[name="email"]');
+const feedbackMessage = document.querySelector('.feedback-form textarea[name="message"]');
 
-function fillingOutLS(evt) {
-  let inputEl = evt.target;
-  if (inputEl.name === 'email') {
-    formData.email = evt.target.value;
-  } else if (inputEl.name === 'message') {
-    formData.message = evt.target.value;
-  } else {
+// Заполнение формы данными из локального хранилища при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+  const savedFormData = JSON.parse(localStorage.getItem(LC_KEY));
+  if (savedFormData) {
+    feedbackEmail.value = savedFormData.email || '';
+    feedbackMessage.value = savedFormData.message || '';
+    formData.email = savedFormData.email || '';
+    formData.message = savedFormData.message || '';
+  }
+});
+
+// Обработчик ввода данных в поля формы
+formEl.addEventListener('input', (evt) => {
+  const { name, value } = evt.target;
+  formData[name] = value;
+  localStorage.setItem(LC_KEY, JSON.stringify(formData));
+});
+
+// Обработчик отправки формы
+formEl.addEventListener('submit', (evt) => {
+  evt.preventDefault();
+
+  const { email, message } = formData;
+  if (email === '' || message === '') {
+    alert('Fill please all fields');
     return;
   }
-  localStorage.setItem(lc_key, JSON.stringify(formData));
-}
 
-function fillingFormData(evt) {
-  const savedForm = localStorage.getItem(lc_key);
+  console.log('Form Data:', formData);
 
-  if (savedForm) {
-    feedbackEmail.value = JSON.parse(savedForm).email;
-    feedbackMessage.value = JSON.parse(savedForm).message;
-  }
-}
-fillingFormData();
-
-formEl.addEventListener('submit', feedbackFormSubmit);
-
-function feedbackFormSubmit(evt) {
-  const { email, message } = evt.currentTarget.elements;
-
-  if (email.value === '' || message.value === '') {
-    alert('Fill please all fields');
-  } else {
-    console.log(JSON.parse(localStorage.getItem(lc_key)));
-  }
-
-  evt.preventDefault();
-  evt.currentTarget.reset();
-  localStorage.removeItem(lc_key);
-}
+  localStorage.removeItem(LC_KEY);
+  formEl.reset();
+  formData.email = '';
+  formData.message = '';
+});
